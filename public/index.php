@@ -8,25 +8,30 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Exception\ResourceNotFoundException;
 use Symfony\Component\Routing\Loader\AnnotationDirectoryLoader;
-use Symfony\Component\Routing\Matcher\UrlMatcher;
 use Symfony\Component\Routing\RequestContext;
+use Symfony\Component\Routing\Router;
 
 define('PROJECT_DIR', dirname(__DIR__));
+const CACHE_DIR = PROJECT_DIR . '/var/cache';
+const DEBUG = true;
+const ENV =  'dev';
 
 require_once PROJECT_DIR . '/vendor/autoload.php';
 
 try {
     $loader = new AnnotationDirectoryLoader(new FileLocator(), new AnnotationLoader());
-    $routes = $loader->load(sprintf('%s/src/Controller/', PROJECT_DIR));
+    $router = new Router($loader, sprintf('%s/src/Controller/', PROJECT_DIR), [
+        'debug' => DEBUG,
+        'cache_dir' => CACHE_DIR . '/' . ENV . '/router',
+    ]);
 
     $request = Request::createFromGlobals();
     $context = new RequestContext();
     $context->fromRequest($request);
-
-    $urlMatcher = new UrlMatcher($routes, $context);
+    $router->setContext($context);
 
     $pathInfo = $context->getPathInfo();
-    $parameters = $urlMatcher->match($pathInfo);
+    $parameters = $router->match($pathInfo);
     $request->attributes->add($parameters);
 
     if (!$controller = $request->attributes->get('_controller')) {
