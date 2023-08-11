@@ -2,26 +2,22 @@
 
 declare(strict_types=1);
 
-use App\Controller\HomeController;
+use App\Router\AnnotationLoader;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Exception\ResourceNotFoundException;
-use Symfony\Component\Routing\Loader\PhpFileLoader;
+use Symfony\Component\Routing\Loader\AnnotationDirectoryLoader;
 use Symfony\Component\Routing\Matcher\UrlMatcher;
 use Symfony\Component\Routing\RequestContext;
-use Symfony\Component\Routing\Route;
-use Symfony\Component\Routing\RouteCollection;
 
 define('PROJECT_DIR', dirname(__DIR__));
-const CONFIG_DIR = PROJECT_DIR . '/config';
 
 require_once PROJECT_DIR . '/vendor/autoload.php';
 
 try {
-    $configLocator = new FileLocator([CONFIG_DIR]);
-    $loader = new PhpFileLoader($configLocator);
-    $routes = $loader->load('routes.php');
+    $loader = new AnnotationDirectoryLoader(new FileLocator(), new AnnotationLoader());
+    $routes = $loader->load(sprintf('%s/src/Controller/', PROJECT_DIR));
 
     $request = Request::createFromGlobals();
     $context = new RequestContext();
