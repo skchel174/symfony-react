@@ -2,28 +2,25 @@
 
 declare(strict_types=1);
 
-use App\Router\AnnotationLoader;
-use Symfony\Component\Config\FileLocator;
+use App\Router\RouterFactory;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Exception\ResourceNotFoundException;
-use Symfony\Component\Routing\Loader\AnnotationDirectoryLoader;
 use Symfony\Component\Routing\RequestContext;
-use Symfony\Component\Routing\Router;
 
-define('PROJECT_DIR', dirname(__DIR__));
-const CACHE_DIR = PROJECT_DIR . '/var/cache';
+const ENV = 'dev';
 const DEBUG = true;
-const ENV =  'dev';
+define('PROJECT_DIR', dirname(__DIR__));
+const CACHE_DIR = PROJECT_DIR . '/var/cache' . '/' . ENV;
 
 require_once PROJECT_DIR . '/vendor/autoload.php';
 
 try {
-    $loader = new AnnotationDirectoryLoader(new FileLocator(), new AnnotationLoader());
-    $router = new Router($loader, sprintf('%s/src/Controller/', PROJECT_DIR), [
-        'debug' => DEBUG,
-        'cache_dir' => CACHE_DIR . '/' . ENV . '/router',
-    ]);
+    $router = (new RouterFactory())(
+        sprintf('%s/src/Controller/', PROJECT_DIR),
+        CACHE_DIR,
+        DEBUG
+    );
 
     $request = Request::createFromGlobals();
     $context = new RequestContext();
