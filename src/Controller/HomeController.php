@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
@@ -17,11 +16,8 @@ class HomeController
     }
 
     #[Route('/greeting/{name?}', 'greeting')]
-    public function greeting(Request $request): Response
+    public function greeting(string $name = 'Guest'): Response
     {
-        $name = $request->attributes->get('name') ?? 'Guest';
-        $content = sprintf('Hello, %s!', $name);
-
-        return new Response($content);
+        return new Response(sprintf('Hello, %s!', $name));
     }
 }
