@@ -6,6 +6,7 @@
         }
     },
     "require": {
-        "symfony/var-dumper": "^6.3"
+        "symfony/var-dumper": "^6.3",
+        "symfony/routing": "^6.3"
     }
 }
