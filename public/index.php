@@ -3,22 +3,25 @@
 declare(strict_types=1);
 
 use App\Controller\HomeController;
+use Symfony\Component\Config\FileLocator;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Exception\ResourceNotFoundException;
+use Symfony\Component\Routing\Loader\PhpFileLoader;
 use Symfony\Component\Routing\Matcher\UrlMatcher;
 use Symfony\Component\Routing\RequestContext;
 use Symfony\Component\Routing\Route;
 use Symfony\Component\Routing\RouteCollection;
 
 define('PROJECT_DIR', dirname(__DIR__));
+const CONFIG_DIR = PROJECT_DIR . '/config';
 
 require_once PROJECT_DIR . '/vendor/autoload.php';
 
 try {
-    $routes = new RouteCollection();
-    $routes->add('home', new Route('/', ['_controller' => HomeController::class . '::index']));
-    $routes->add('greeting', new Route('/greeting/{name?}', ['_controller' => [HomeController::class, 'greeting']]));
+    $configLocator = new FileLocator([CONFIG_DIR]);
+    $loader = new PhpFileLoader($configLocator);
+    $routes = $loader->load('routes.php');
 
     $request = Request::createFromGlobals();
     $context = new RequestContext();
