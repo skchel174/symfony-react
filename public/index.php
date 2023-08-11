@@ -16,8 +16,15 @@ require_once PROJECT_DIR . '/vendor/autoload.php';
 
 $routes = new RouteCollection();
 
-$routes->add('dummy', new Route('/', ['_controller' => function (): Response {
+$routes->add('home', new Route('/', ['_controller' => function (): Response {
     return new Response('Hello, World!');
+}]));
+
+$routes->add('greeting', new Route('/greeting/{name?}', ['_controller' => function (Request $request): Response {
+    $name = $request->attributes->get('name') ?? 'Guest';
+    $content = sprintf('Hello, %s!', $name);
+
+    return new Response($content);
 }]));
 
 $request = Request::createFromGlobals();
@@ -27,8 +34,10 @@ $context->fromRequest($request);
 $urlMatcher = new UrlMatcher($routes, $context);
 
 try {
-    $parameters = $urlMatcher->match($context->getPathInfo());
-    $handler = $parameters['_controller'];
+    $pathInfo = $context->getPathInfo();
+    $parameters = $urlMatcher->match($pathInfo);
+    $request->attributes->add($parameters);
+    $handler = $request->attributes->get('_controller');
     $response = $handler($request);
 } catch (ResourceNotFoundException $e) {
     $response = new Response('404 error', 404);
