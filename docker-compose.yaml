@@ -1,0 +1,25 @@
+version: '3'
+
+services:
+  app-nginx:
+    build:
+      context: docker/nginx
+    volumes:
+      - ./:/app
+    ports:
+      - "8080:80"
+    links:
+      - app-fpm
+
+  app-fpm:
+    build:
+      context: docker/php-fpm
+    volumes:
+      - ./:/app
+
+  app-cli:
+    build:
+      context: docker/php-cli
+    volumes:
+      - ./:/app
+    tty: true
