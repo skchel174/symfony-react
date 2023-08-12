@@ -6,6 +6,7 @@ use App\ControllerResolver\ArgumentsResolver;
 use App\ControllerResolver\ControllerResolver;
 use App\Event\RequestEvent;
 use App\Event\ResponseEvent;
+use App\EventListener\ProfilerSubscriber;
 use App\EventListener\RoutingListener;
 use App\Router\RouterFactory;
 use Symfony\Component\EventDispatcher\EventDispatcher;
@@ -26,6 +27,7 @@ $router = (new RouterFactory())(
 
 $eventDispatcher = new EventDispatcher();
 $eventDispatcher->addListener(RequestEvent::class, new RoutingListener($router));
+$eventDispatcher->addSubscriber(new ProfilerSubscriber(DEBUG));
 
 $request = Request::createFromGlobals();
 
