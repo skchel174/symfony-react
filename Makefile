@@ -13,4 +13,4 @@ app-cli:
 	docker-compose exec app-cli bash
 
 composer-install:
-	docker-compose exec php-cli composer install
+	docker-compose exec app-cli composer install

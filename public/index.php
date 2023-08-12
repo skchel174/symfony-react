@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\ControllerResolver\ArgumentsResolver;
+use App\ControllerResolver\ControllerResolver;
 use App\Router\RouterFactory;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -31,34 +33,13 @@ try {
     $parameters = $router->match($pathInfo);
     $request->attributes->add($parameters);
 
-    if (!$controller = $request->attributes->get('_controller')) {
-        throw new RuntimeException(sprintf('Not found controller for path "%s"', $request->getUri()));
-    }
+    $controllerResolver = new ControllerResolver();
+    $argumentsResolver = new ArgumentsResolver();
 
-    if (is_string($controller)) {
-        $controller = explode('::', $controller);
-    }
+    $controller = $controllerResolver->getController($request);
 
-    if (is_array($controller)) {
-        $method = $controller[1] ?? '__invoke';
-        $controller = $controller[0];
-
-        if (!class_exists($controller)) {
-            throw new RuntimeException(sprintf('Controller "%s" not exists.', $controller));
-        }
-
-        if (!method_exists($controller, $method)) {
-            throw new RuntimeException(sprintf('Controller "%s" does not have a method "%s"', $controller, $method));
-        }
-
-        $controller = [new $controller(), $method];
-    }
-
-    if (!is_callable($controller)) {
-        throw new RuntimeException(sprintf('Failed to resolve controller for URI "%s"', $request->getPathInfo()));
-    }
-
-    $response = $controller($request);
+    $arguments = $argumentsResolver->getArguments($request, $controller);
+    $response = $controller(...$arguments);
 } catch (ResourceNotFoundException $e) {
     $response = new Response('404 error', 404);
 }
