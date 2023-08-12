@@ -2,7 +2,8 @@
     "name": "symfony-react/app",
     "autoload": {
         "psr-4": {
-            "App\\": "src/"
+            "App\\": "src/",
+            "Test\\": "tests/"
         }
     },
     "require": {
