@@ -9,25 +9,47 @@ use App\Event\ResponseEvent;
 use App\EventListener\ProfilerSubscriber;
 use App\EventListener\RoutingListener;
 use App\Router\RouterFactory;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\ParameterBag\ParameterBag;
+use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Routing\Router;
+use Symfony\Component\Routing\RouterInterface;
+use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
 const ENV = 'dev';
 const DEBUG = true;
 define('PROJECT_DIR', dirname(__DIR__));
-const CACHE_DIR = PROJECT_DIR . '/var/cache' . '/' . ENV;
 
 require_once PROJECT_DIR . '/vendor/autoload.php';
 
-$router = (new RouterFactory())(
-    sprintf('%s/src/Controller/', PROJECT_DIR),
-    CACHE_DIR,
-    DEBUG
-);
+$parameters = new ParameterBag([
+    'env' => ENV,
+    'debug' => DEBUG,
+    'project_dir' => PROJECT_DIR,
+    'config_dir' => PROJECT_DIR . '/config',
+    'cache_dir' => PROJECT_DIR . '/var/cache/' . ENV
+]);
 
-$eventDispatcher = new EventDispatcher();
-$eventDispatcher->addListener(RequestEvent::class, new RoutingListener($router));
-$eventDispatcher->addSubscriber(new ProfilerSubscriber(DEBUG));
+$container = new ContainerBuilder($parameters);
+$container->register(RouterFactory::class, RouterFactory::class);
+$container->register(RouterInterface::class, Router::class)
+    ->setFactory(new Reference(RouterFactory::class))
+        ->setArguments([
+            '%project_dir%/src/Controller',
+            '%cache_dir%',
+            '%debug%',
+        ]);
+$container->register(EventDispatcherInterface::class, EventDispatcher::class);
+$container->register(RoutingListener::class, RoutingListener::class)
+    ->setArguments([new Reference(RouterInterface::class)]);
+$container->register(ProfilerSubscriber::class, ProfilerSubscriber::class)
+    ->setArguments(['%debug%']);
+
+$eventDispatcher = $container->get(EventDispatcherInterface::class);
+$eventDispatcher->addListener(RequestEvent::class, $container->get(RoutingListener::class));
+$eventDispatcher->addSubscriber($container->get(ProfilerSubscriber::class));
 
 $request = Request::createFromGlobals();
 
