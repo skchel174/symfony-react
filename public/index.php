@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 use App\ControllerResolver\ArgumentsResolver;
 use App\ControllerResolver\ControllerResolver;
+use App\Event\RequestEvent;
+use App\Event\ResponseEvent;
+use App\EventListener\RoutingListener;
 use App\Router\RouterFactory;
+use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Exception\ResourceNotFoundException;
-use Symfony\Component\Routing\RequestContext;
 
 const ENV = 'dev';
 const DEBUG = true;
@@ -17,31 +18,38 @@ const CACHE_DIR = PROJECT_DIR . '/var/cache' . '/' . ENV;
 
 require_once PROJECT_DIR . '/vendor/autoload.php';
 
-try {
-    $router = (new RouterFactory())(
-        sprintf('%s/src/Controller/', PROJECT_DIR),
-        CACHE_DIR,
-        DEBUG
-    );
+$router = (new RouterFactory())(
+    sprintf('%s/src/Controller/', PROJECT_DIR),
+    CACHE_DIR,
+    DEBUG
+);
 
-    $request = Request::createFromGlobals();
-    $context = new RequestContext();
-    $context->fromRequest($request);
-    $router->setContext($context);
+$eventDispatcher = new EventDispatcher();
+$eventDispatcher->addListener(RequestEvent::class, new RoutingListener($router));
 
-    $pathInfo = $context->getPathInfo();
-    $parameters = $router->match($pathInfo);
-    $request->attributes->add($parameters);
+$request = Request::createFromGlobals();
 
-    $controllerResolver = new ControllerResolver();
-    $argumentsResolver = new ArgumentsResolver();
+$requestEvent = new RequestEvent($request);
+$eventDispatcher->dispatch($requestEvent);
 
-    $controller = $controllerResolver->getController($request);
-
-    $arguments = $argumentsResolver->getArguments($request, $controller);
-    $response = $controller(...$arguments);
-} catch (ResourceNotFoundException $e) {
-    $response = new Response('404 error', 404);
+if ($requestEvent->hasResponse()) {
+    $response = $requestEvent->getResponse();
+    $response->send();
+    exit;
 }
+
+$controllerResolver = new ControllerResolver();
+$argumentsResolver = new ArgumentsResolver();
+
+if (!$controller = $controllerResolver->getController($request)) {
+    throw new RuntimeException(sprintf('Not found controller for path "%s"', $request->getUri()));
+}
+
+$arguments = $argumentsResolver->getArguments($request, $controller);
+$response = $controller(...$arguments);
+
+$responseEvent = new ResponseEvent($request, $response);
+$eventDispatcher->dispatch($responseEvent);
+$response = $responseEvent->getResponse();
 
 $response->send();
