@@ -47,6 +47,9 @@ $container->register(RoutingListener::class, RoutingListener::class)
 $container->register(ProfilerSubscriber::class, ProfilerSubscriber::class)
     ->setArguments(['%debug%']);
 
+$container->register(ControllerResolver::class, ControllerResolver::class);
+$container->register(ArgumentsResolver::class, ArgumentsResolver::class);
+
 $eventDispatcher = $container->get(EventDispatcherInterface::class);
 $eventDispatcher->addListener(RequestEvent::class, $container->get(RoutingListener::class));
 $eventDispatcher->addSubscriber($container->get(ProfilerSubscriber::class));
@@ -62,8 +65,8 @@ if ($requestEvent->hasResponse()) {
     exit;
 }
 
-$controllerResolver = new ControllerResolver();
-$argumentsResolver = new ArgumentsResolver();
+$controllerResolver = $container->get(ControllerResolver::class);
+$argumentsResolver = $container->get(ArgumentsResolver::class);
 
 if (!$controller = $controllerResolver->getController($request)) {
     throw new RuntimeException(sprintf('Not found controller for path "%s"', $request->getUri()));
