@@ -4,15 +4,10 @@ declare(strict_types=1);
 
 use App\ControllerResolver\ArgumentsResolver;
 use App\ControllerResolver\ControllerResolver;
+use App\DependencyInjection\ContainerFactory;
 use App\Event\RequestEvent;
 use App\Event\ResponseEvent;
 use Psr\EventDispatcher\EventDispatcherInterface;
-use Symfony\Component\Config\ConfigCache;
-use Symfony\Component\Config\FileLocator;
-use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\DependencyInjection\Dumper\PhpDumper;
-use Symfony\Component\DependencyInjection\Loader\PhpFileLoader;
-use Symfony\Component\DependencyInjection\ParameterBag\ParameterBag;
 use Symfony\Component\HttpFoundation\Request;
 
 const ENV = 'dev';
@@ -21,53 +16,8 @@ define('PROJECT_DIR', dirname(__DIR__));
 
 require_once PROJECT_DIR . '/vendor/autoload.php';
 
-// Initializing container
-
-$containerClass = ucfirst(ENV) . (DEBUG ? 'Debug' : '') . 'Container';
-$containerFile = PROJECT_DIR . '/var/cache/' . ENV . '/container/' . $containerClass . '.php';
-$containerCache = new ConfigCache($containerFile, DEBUG);
-
-if (!$containerCache->isFresh()) {
-    $container = new ContainerBuilder(new ParameterBag([
-        'env' => ENV,
-        'debug' => DEBUG,
-        'project_dir' => PROJECT_DIR,
-        'config_dir' => PROJECT_DIR . '/config',
-        'cache_dir' => PROJECT_DIR . '/var/cache/' . ENV
-    ]));
-
-    $extensions = require_once PROJECT_DIR . '/config/extensions.php';
-
-    foreach ($extensions as $extension) {
-        $container->registerExtension(new $extension());
-    }
-
-    $fileLocator = new FileLocator(PROJECT_DIR . '/config');
-    $loader = new PhpFileLoader($container, $fileLocator);
-    $loader->load('services.php');
-
-    foreach ($container->getExtensions() as $extension) {
-        if (empty($container->getExtensionConfig($extension->getAlias()))) {
-            // Add empty extension configuration array if configuration is missing
-            $container->loadFromExtension($extension->getAlias(), []);
-        }
-    }
-
-    $container->compile();
-
-    $dumper = new PhpDumper($container);
-    $dump = $dumper->dump([
-        'class' => $containerClass,
-        'debug' => DEBUG,
-    ]);
-    $containerCache->write($dump, $container->getResources());
-}
-
-require_once $containerFile;
-
-$container = new $containerClass();
-
-// Handle request
+$containerFactory = new ContainerFactory(DEBUG, ENV, PROJECT_DIR);
+$container = $containerFactory->createContainer();
 
 $request = Request::createFromGlobals();
 
@@ -82,7 +32,10 @@ if ($requestEvent->hasResponse()) {
     exit;
 }
 
+/** @var ControllerResolver $controllerResolver */
 $controllerResolver = $container->get(ControllerResolver::class);
+
+/** @var ArgumentsResolver $controllerResolver */
 $argumentsResolver = $container->get(ArgumentsResolver::class);
 
 if (!$controller = $controllerResolver->getController($request)) {
