@@ -7,6 +7,7 @@ use App\ControllerResolver\ControllerResolver;
 use App\Event\RequestEvent;
 use App\Event\ResponseEvent;
 use Psr\EventDispatcher\EventDispatcherInterface;
+use Symfony\Component\Config\ConfigCache;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Dumper\PhpDumper;
@@ -22,12 +23,11 @@ require_once PROJECT_DIR . '/vendor/autoload.php';
 
 // Initializing container
 
-$containerCache = PROJECT_DIR . '/var/cache/' . ENV . '/container.php';
+$containerClass = ucfirst(ENV) . (DEBUG ? 'Debug' : '') . 'Container';
+$containerFile = PROJECT_DIR . '/var/cache/' . ENV . '/container/' . $containerClass . '.php';
+$containerCache = new ConfigCache($containerFile, DEBUG);
 
-if (file_exists($containerCache)) {
-    require_once $containerCache;
-    $container = new ProjectServiceContainer();
-} else {
+if (!$containerCache->isFresh()) {
     $container = new ContainerBuilder(new ParameterBag([
         'env' => ENV,
         'debug' => DEBUG,
@@ -56,8 +56,16 @@ if (file_exists($containerCache)) {
     $container->compile();
 
     $dumper = new PhpDumper($container);
-    file_put_contents($containerCache, $dumper->dump());
+    $dump = $dumper->dump([
+        'class' => $containerClass,
+        'debug' => DEBUG,
+    ]);
+    $containerCache->write($dump, $container->getResources());
 }
+
+require_once $containerFile;
+
+$container = new $containerClass();
 
 // Handle request
 
