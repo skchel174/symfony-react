@@ -6,23 +6,20 @@ use App\ControllerResolver\ArgumentsResolver;
 use App\ControllerResolver\ControllerResolver;
 use App\Event\RequestEvent;
 use App\Event\ResponseEvent;
-use App\EventListener\ProfilerSubscriber;
-use App\EventListener\RoutingListener;
-use App\Router\RouterFactory;
+use Psr\EventDispatcher\EventDispatcherInterface;
+use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Loader\PhpFileLoader;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBag;
-use Symfony\Component\DependencyInjection\Reference;
-use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Routing\Router;
-use Symfony\Component\Routing\RouterInterface;
-use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
 const ENV = 'dev';
 const DEBUG = true;
 define('PROJECT_DIR', dirname(__DIR__));
 
 require_once PROJECT_DIR . '/vendor/autoload.php';
+
+// Initializing container
 
 $parameters = new ParameterBag([
     'env' => ENV,
@@ -33,28 +30,31 @@ $parameters = new ParameterBag([
 ]);
 
 $container = new ContainerBuilder($parameters);
-$container->register(RouterFactory::class, RouterFactory::class);
-$container->register(RouterInterface::class, Router::class)
-    ->setFactory(new Reference(RouterFactory::class))
-        ->setArguments([
-            '%project_dir%/src/Controller',
-            '%cache_dir%',
-            '%debug%',
-        ]);
-$container->register(EventDispatcherInterface::class, EventDispatcher::class);
-$container->register(RoutingListener::class, RoutingListener::class)
-    ->setArguments([new Reference(RouterInterface::class)]);
-$container->register(ProfilerSubscriber::class, ProfilerSubscriber::class)
-    ->setArguments(['%debug%']);
 
-$container->register(ControllerResolver::class, ControllerResolver::class);
-$container->register(ArgumentsResolver::class, ArgumentsResolver::class);
+$extensions = require_once PROJECT_DIR . '/config/extensions.php';
 
-$eventDispatcher = $container->get(EventDispatcherInterface::class);
-$eventDispatcher->addListener(RequestEvent::class, $container->get(RoutingListener::class));
-$eventDispatcher->addSubscriber($container->get(ProfilerSubscriber::class));
+foreach ($extensions as $extension) {
+    $container->registerExtension(new $extension());
+}
+
+$fileLocator = new FileLocator(PROJECT_DIR . '/config');
+$loader = new PhpFileLoader($container, $fileLocator);
+$loader->load('services.php');
+
+foreach ($container->getExtensions() as $extension) {
+    if (empty($container->getExtensionConfig($extension->getAlias()))) {
+        // Add empty extension configuration array if configuration is missing
+        $container->loadFromExtension($extension->getAlias(), []);
+    }
+}
+
+$container->compile();
+
+// Handle request
 
 $request = Request::createFromGlobals();
+
+$eventDispatcher = $container->get(EventDispatcherInterface::class);
 
 $requestEvent = new RequestEvent($request);
 $eventDispatcher->dispatch($requestEvent);
