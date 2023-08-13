@@ -8,6 +8,8 @@ use App\Event\RequestEvent;
 use App\EventListener\ProfilerSubscriber;
 use App\EventListener\RoutingListener;
 use App\Router\RouterFactory;
+use Psr\Container\ContainerInterface as PsrContainerInterface;
+use Symfony\Component\DependencyInjection\ContainerInterface as SymfonyContainerInterface;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
@@ -21,8 +23,16 @@ return static function (ContainerConfigurator $container) {
     $services->defaults()
         ->autowire();
 
-    $services->load('App\\Controller\\', '../src/Controller');
+    $services->load('App\\Controller\\', '../src/Controller')
+        ->public();
 
+    // Container
+    $services->alias(PsrContainerInterface::class, 'service_container')
+        ->public();
+    $services->alias(SymfonyContainerInterface::class, 'service_container')
+        ->public();
+
+    // Router
     $services->set(RouterInterface::class, Router::class)
         ->factory(service(RouterFactory::class))
         ->args([
@@ -40,6 +50,7 @@ return static function (ContainerConfigurator $container) {
     $services->set(ArgumentsResolver::class)
         ->public();
 
+    // EventDispatcher
     $services->set(EventDispatcherInterface::class, EventDispatcher::class)
         ->alias(Psr\EventDispatcher\EventDispatcherInterface::class, EventDispatcherInterface::class)
         ->public();
