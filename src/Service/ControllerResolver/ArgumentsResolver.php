@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\ControllerResolver;
+namespace App\Service\ControllerResolver;
 
 use Closure;
 use InvalidArgumentException;
@@ -11,7 +11,7 @@ use ReflectionFunction;
 use ReflectionMethod;
 use Symfony\Component\HttpFoundation\Request;
 
-class ArgumentsResolver
+class ArgumentsResolver implements ArgumentsResolverInterface
 {
     /**
      * @throws ReflectionException

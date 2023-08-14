@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace App\ControllerResolver;
+namespace App\Service\ControllerResolver;
 
 use Psr\Container\ContainerInterface;
 use RuntimeException;
 use Symfony\Component\HttpFoundation\Request;
 
-readonly class ControllerResolver
+class ControllerResolver implements ControllerResolverInterface
 {
-    public function __construct(private ContainerInterface $container)
+    public function __construct(private readonly ContainerInterface $container)
     {
     }
 
