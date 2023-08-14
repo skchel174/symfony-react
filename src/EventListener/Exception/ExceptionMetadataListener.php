@@ -7,9 +7,9 @@ namespace App\EventListener\Exception;
 use App\Event\ExceptionEvent;
 use App\Service\ExceptionMetadataResolver\ExceptionMetadataResolver;
 
-readonly class ExceptionMetadataListener
+class ExceptionMetadataListener
 {
-    public function __construct(private ExceptionMetadataResolver $metadataResolver)
+    public function __construct(private readonly ExceptionMetadataResolver $metadataResolver)
     {
     }
 

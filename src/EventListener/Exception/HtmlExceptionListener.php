@@ -8,9 +8,9 @@ use App\Event\ExceptionEvent;
 use Symfony\Component\ErrorHandler\ErrorRenderer\HtmlErrorRenderer;
 use Symfony\Component\HttpFoundation\Response;
 
-readonly class HtmlExceptionListener
+class HtmlExceptionListener
 {
-    public function __construct(private HtmlErrorRenderer $renderer)
+    public function __construct(private readonly HtmlErrorRenderer $renderer)
     {
     }
 

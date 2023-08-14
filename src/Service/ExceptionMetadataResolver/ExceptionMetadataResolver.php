@@ -6,9 +6,9 @@ namespace App\Service\ExceptionMetadataResolver;
 
 use Throwable;
 
-readonly class ExceptionMetadataResolver
+class ExceptionMetadataResolver
 {
-    public function __construct(private array $exceptionsMapping = [])
+    public function __construct(private readonly array $exceptionsMapping = [])
     {
     }
 

@@ -7,9 +7,9 @@ namespace App\EventListener\Exception;
 use App\Event\ExceptionEvent;
 use Psr\Log\LoggerInterface;
 
-readonly class ExceptionLogListener
+class ExceptionLogListener
 {
-    public function __construct(private LoggerInterface $logger)
+    public function __construct(private readonly LoggerInterface $logger)
     {
     }
 

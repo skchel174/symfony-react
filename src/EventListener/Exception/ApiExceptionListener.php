@@ -8,9 +8,9 @@ use App\Event\ExceptionEvent;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 
-readonly class ApiExceptionListener
+class ApiExceptionListener
 {
-    public function __construct(private bool $debug)
+    public function __construct(private readonly bool $debug)
     {
     }
 
@@ -23,18 +23,20 @@ readonly class ApiExceptionListener
         }
 
         $e = $event->getThrowable();
+
         $metadata = $event->getMetadata();
+        $statusCode = $metadata->getStatusCode();
+        $isHidden = $metadata->isHidden();
 
         $data = [
-            'status' => $metadata->getStatusCode(),
-            'detail' => $metadata->isHidden() ? Response::$statusTexts[$metadata->getStatusCode()] : $e->getMessage(),
+            'status' => $statusCode,
+            'detail' => $isHidden ? Response::$statusTexts[$statusCode] : $e->getMessage(),
         ];
 
         if ($this->debug) {
-            if ($metadata->isHidden()) {
+            if ($isHidden) {
                 $data['message'] = $e->getMessage();
             }
-
             $data['class'] = get_class($e);
             $data['code'] = $e->getCode();
             $data['file'] = $e->getFile();
@@ -42,6 +44,6 @@ readonly class ApiExceptionListener
             $data['trace'] = $e->getTrace();
         }
 
-        $event->setResponse(new JsonResponse($data, $metadata->getStatusCode()));
+        $event->setResponse(new JsonResponse($data, $statusCode));
     }
 }
