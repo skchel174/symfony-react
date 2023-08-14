@@ -32,6 +32,11 @@ return static function (ContainerConfigurator $container) {
     $services->alias(SymfonyContainerInterface::class, 'service_container')
         ->public();
 
+    // EventDispatcher
+    $services->set(EventDispatcherInterface::class, EventDispatcher::class)
+        ->alias(Psr\EventDispatcher\EventDispatcherInterface::class, EventDispatcherInterface::class)
+        ->public();
+
     // Router
     $services->set(RouterInterface::class, Router::class)
         ->factory(service(RouterFactory::class))
@@ -48,11 +53,6 @@ return static function (ContainerConfigurator $container) {
         ->public();
 
     $services->set(ArgumentsResolver::class)
-        ->public();
-
-    // EventDispatcher
-    $services->set(EventDispatcherInterface::class, EventDispatcher::class)
-        ->alias(Psr\EventDispatcher\EventDispatcherInterface::class, EventDispatcherInterface::class)
         ->public();
 
     $services->set(RoutingListener::class)
