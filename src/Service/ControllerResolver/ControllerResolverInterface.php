@@ -6,5 +6,5 @@ use Symfony\Component\HttpFoundation\Request;
 
 interface ControllerResolverInterface
 {
-    public function getController(Request $request): callable|false;
+    public function getController(Request $request): callable;
 }
