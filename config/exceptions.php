@@ -40,7 +40,7 @@ return static function (ContainerConfigurator $container) {
         ]);
 
     $services->set(ApiExceptionListener::class)
-        ->args(['%debug%'])
+        ->args(['%app.debug%'])
         ->tag('event_listener', [
             'event' => ExceptionEvent::class,
             'priority' => -100,
@@ -54,5 +54,5 @@ return static function (ContainerConfigurator $container) {
         ]);
 
     $services->set(HtmlErrorRenderer::class)
-        ->args(['%debug%']);
+        ->args(['%app.debug%']);
 };
