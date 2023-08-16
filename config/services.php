@@ -2,12 +2,13 @@
 
 declare(strict_types=1);
 
-use App\ControllerResolver\ArgumentsResolver;
-use App\ControllerResolver\ControllerResolver;
 use App\Event\RequestEvent;
 use App\EventListener\ProfilerSubscriber;
 use App\EventListener\RoutingListener;
+use App\Kernel;
 use App\Router\RouterFactory;
+use App\Service\ControllerResolver\ControllerResolver;
+use App\Service\ControllerResolver\ControllerResolverInterface;
 use Psr\Container\ContainerInterface as PsrContainerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface as SymfonyContainerInterface;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
@@ -49,14 +50,14 @@ return static function (ContainerConfigurator $container) {
 
     $services->set(RouterFactory::class);
 
-    $services->set(ControllerResolver::class)
-        ->public();
-
-    $services->set(ArgumentsResolver::class)
-        ->public();
-
     $services->set(RoutingListener::class)
         ->tag('event_listener', ['event' => RequestEvent::class]);
+
+    // Kernel
+    $services->set(Kernel::class)
+        ->public();
+
+    $services->set(ControllerResolverInterface::class, ControllerResolver::class);
 
     $services->set(ProfilerSubscriber::class)
         ->args(['%debug%'])
