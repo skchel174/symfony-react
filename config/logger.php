@@ -2,10 +2,12 @@
 
 declare(strict_types=1);
 
+use App\Console\ClearLogCommand;
 use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
+use Symfony\Component\Filesystem\Filesystem;
 use function Symfony\Component\DependencyInjection\Loader\Configurator\service;
 
 return static function (ContainerConfigurator $container) {
@@ -23,4 +25,8 @@ return static function (ContainerConfigurator $container) {
             [service('logger.handler.default')]
         ])
         ->alias(LoggerInterface::class, 'logger.default');
+
+    $services->set(ClearLogCommand::class)
+        ->args(['%logger.dir%', service(Filesystem::class)])
+        ->tag('console.command');
 };
