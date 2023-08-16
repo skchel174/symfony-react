@@ -4,18 +4,21 @@ declare(strict_types=1);
 
 namespace App\Console;
 
+use DirectoryIterator;
 use InvalidArgumentException;
 use LogicException;
+use SplFileInfo;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Question\Question;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Filesystem\Filesystem;
 
-#[AsCommand(name: 'cache:clear', description: 'Clear application cache')]
-class CacheClearCommand extends Command
+#[AsCommand(name: 'clear:cache', description: 'Clear application cache')]
+class ClearCacheCommand extends Command
 {
     public function __construct(private readonly string $cacheDir, private readonly Filesystem $filesystem)
     {
@@ -42,7 +45,22 @@ class CacheClearCommand extends Command
             throw new LogicException('Application cache not exists');
         }
 
-        $env = $input->getOption('env');
+        if (!$env = $input->getOption('env')) {
+            $question = new Question(sprintf('Are you sure you want to clean the entire directory %s [y/n]?', $cacheDir));
+
+            if ($io->askQuestion($question) !== 'y') {
+                return Command::SUCCESS;
+            }
+
+            foreach (new DirectoryIterator($cacheDir) as $fileInfo) {
+                /** @var SplFileInfo $fileInfo */
+                if (!$fileInfo->isDot()) {
+                    $this->filesystem->remove($fileInfo->getRealPath());
+                }
+            }
+
+            $io->success('Cache was successfully cleared');
+        }
 
         $envCache = $cacheDir . '/' . $env;
 
@@ -52,7 +70,7 @@ class CacheClearCommand extends Command
 
         $this->filesystem->remove($envCache);
 
-        $io->success('Cache was successfully cleared');
+        $io->success(sprintf('Cache for %s environment was successfully cleared', $env));
 
         return Command::SUCCESS;
     }
