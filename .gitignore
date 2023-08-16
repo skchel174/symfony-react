@@ -5,3 +5,7 @@
 
 /var/
 !/var/.gitkeep
+
+/.env.local
+/.env.local.php
+/.env.*.local
