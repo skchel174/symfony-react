@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Console\ClearCacheCommand;
 use App\Console\ClearLogCommand;
+use App\Console\DebugEventsCommand;
 use App\Console\DebugRouterCommand;
 use App\Event\RequestEvent;
 use App\EventListener\ProfilerSubscriber;
@@ -42,6 +43,10 @@ return static function (ContainerConfigurator $container) {
     $services->set(EventDispatcherInterface::class, EventDispatcher::class)
         ->alias(Psr\EventDispatcher\EventDispatcherInterface::class, EventDispatcherInterface::class)
         ->public();
+
+    $services->set(DebugEventsCommand::class)
+        ->args([service(EventDispatcherInterface::class)])
+        ->tag('console.command');
 
     // Router
     $services->set(RouterInterface::class, Router::class)
