@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Console\CacheClearCommand;
 use App\Event\RequestEvent;
 use App\EventListener\ProfilerSubscriber;
 use App\EventListener\RoutingListener;
@@ -10,10 +11,12 @@ use App\Router\RouterFactory;
 use App\Service\ControllerResolver\ControllerResolver;
 use App\Service\ControllerResolver\ControllerResolverInterface;
 use Psr\Container\ContainerInterface as PsrContainerInterface;
+use Symfony\Component\Console\Application;
 use Symfony\Component\DependencyInjection\ContainerInterface as SymfonyContainerInterface;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Routing\Router;
 use Symfony\Component\Routing\RouterInterface;
 use function Symfony\Component\DependencyInjection\Loader\Configurator\service;
@@ -62,4 +65,17 @@ return static function (ContainerConfigurator $container) {
     $services->set(ProfilerSubscriber::class)
         ->args(['%app.debug%'])
         ->tag('event_subscriber');
+
+    // Console
+    $services->set(Application::class)
+        ->public();
+
+    $services->set(CacheClearCommand::class)
+        ->args([
+            '%app.cache_dir%',
+            service(Filesystem::class),
+        ])
+        ->tag('console.command');
+
+    $services->set(Filesystem::class);
 };

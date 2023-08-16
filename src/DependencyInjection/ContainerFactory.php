@@ -42,7 +42,7 @@ readonly class ContainerFactory
 
     protected function getCacheDir(): string
     {
-        return $this->projectDir . '/var/cache';
+        return $this->projectDir . '/var/cache/' . $this->env;
     }
 
     protected function getExtensionsFile(): string
@@ -52,7 +52,7 @@ readonly class ContainerFactory
 
     protected function getContainerClass(): string
     {
-        return ucfirst($this->env) . ($this->debug ? 'Debug' : '') . 'Container';
+        return ($this->debug ? 'Debug' : '') . 'Container';
     }
 
     protected function getContainerCacheFile(): string
