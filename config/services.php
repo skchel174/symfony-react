@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Console\ClearCacheCommand;
 use App\Console\ClearLogCommand;
+use App\Console\DebugRouterCommand;
 use App\Event\RequestEvent;
 use App\EventListener\ProfilerSubscriber;
 use App\EventListener\RoutingListener;
@@ -56,6 +57,10 @@ return static function (ContainerConfigurator $container) {
 
     $services->set(RoutingListener::class)
         ->tag('event_listener', ['event' => RequestEvent::class]);
+
+    $services->set(DebugRouterCommand::class)
+        ->args([service(RouterInterface::class)])
+        ->tag('console.command');
 
     // Kernel
     $services->set(Kernel::class)
