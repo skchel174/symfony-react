@@ -10,12 +10,12 @@ use function Symfony\Component\DependencyInjection\Loader\Configurator\service;
 
 return static function (ContainerConfigurator $container) {
     $container->parameters()
-        ->set('logger.dir', '%project_dir%/var/log');
+        ->set('logger.dir', '%app.project_dir%/var/log');
 
     $services = $container->services();
 
     $services->set('logger.handler.default', StreamHandler::class)
-        ->args(['%logger.dir%/%env%.log']);
+        ->args(['%logger.dir%/%app.env%.log']);
 
     $services->set('logger.default', Logger::class)
         ->args([

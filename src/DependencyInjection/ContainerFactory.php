@@ -63,11 +63,11 @@ readonly class ContainerFactory
     protected function getProjectParameters(): array
     {
         return [
-            'env' => $this->env,
-            'debug' => $this->debug,
-            'project_dir' => $this->projectDir,
-            'config_dir' => $this->getConfigDir(),
-            'cache_dir' => $this->getCacheDir(),
+            'app.env' => $this->env,
+            'app.debug' => $this->debug,
+            'app.project_dir' => $this->projectDir,
+            'app.config_dir' => $this->getConfigDir(),
+            'app.cache_dir' => $this->getCacheDir(),
         ];
     }
 

@@ -42,9 +42,9 @@ return static function (ContainerConfigurator $container) {
     $services->set(RouterInterface::class, Router::class)
         ->factory(service(RouterFactory::class))
         ->args([
-            '%project_dir%/src/Controller',
-            '%cache_dir%',
-            '%debug%',
+            '%app.project_dir%/src/Controller',
+            '%app.cache_dir%',
+            '%app.debug%',
         ])
         ->public();
 
@@ -60,6 +60,6 @@ return static function (ContainerConfigurator $container) {
     $services->set(ControllerResolverInterface::class, ControllerResolver::class);
 
     $services->set(ProfilerSubscriber::class)
-        ->args(['%debug%'])
+        ->args(['%app.debug%'])
         ->tag('event_subscriber');
 };
