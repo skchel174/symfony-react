@@ -2,7 +2,8 @@
 
 declare(strict_types=1);
 
-use App\Console\CacheClearCommand;
+use App\Console\ClearCacheCommand;
+use App\Console\ClearLogCommand;
 use App\Event\RequestEvent;
 use App\EventListener\ProfilerSubscriber;
 use App\EventListener\RoutingListener;
@@ -70,11 +71,8 @@ return static function (ContainerConfigurator $container) {
     $services->set(Application::class)
         ->public();
 
-    $services->set(CacheClearCommand::class)
-        ->args([
-            '%app.cache_dir%',
-            service(Filesystem::class),
-        ])
+    $services->set(ClearCacheCommand::class)
+        ->args(['%app.cache_dir%', service(Filesystem::class)])
         ->tag('console.command');
 
     $services->set(Filesystem::class);
