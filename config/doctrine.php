@@ -5,6 +5,11 @@ declare(strict_types=1);
 use App\Doctrine\EntityManagerFactory;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\Tools\Console\Command\GenerateProxiesCommand;
+use Doctrine\ORM\Tools\Console\Command\SchemaTool\DropCommand;
+use Doctrine\ORM\Tools\Console\Command\ValidateSchemaCommand;
+use Doctrine\ORM\Tools\Console\EntityManagerProvider;
+use Doctrine\ORM\Tools\Console\EntityManagerProvider\SingleManagerProvider;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use function Symfony\Component\DependencyInjection\Loader\Configurator\service;
 
@@ -37,4 +42,20 @@ return static function (ContainerConfigurator $container) {
 
     $services->set(EntityManagerFactory::class)
         ->args(['%app.env%']);
+
+    $services->set(EntityManagerProvider::class, SingleManagerProvider::class)
+        ->args([service(EntityManagerInterface::class)]);
+
+    // ORM Commands
+    $services->set(GenerateProxiesCommand::class)
+        ->args([service(EntityManagerProvider::class)])
+        ->tag('console.command');
+
+    $services->set(ValidateSchemaCommand::class)
+        ->args([service(EntityManagerProvider::class)])
+        ->tag('console.command');
+
+    $services->set(DropCommand::class)
+        ->args([service(EntityManagerProvider::class)])
+        ->tag('console.command');
 };
