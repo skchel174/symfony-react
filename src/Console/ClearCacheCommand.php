@@ -60,6 +60,8 @@ class ClearCacheCommand extends Command
             }
 
             $io->success('Cache was successfully cleared');
+
+            return Command::SUCCESS;
         }
 
         $envCache = $cacheDir . '/' . $env;
