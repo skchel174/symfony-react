@@ -1,7 +1,7 @@
 init: down build up composer-install
 
 up:
-	docker-compose up -d
+	docker compose --env-file ./.env.local up -d
 
 build:
 	docker-compose build --pull
