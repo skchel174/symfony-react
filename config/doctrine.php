@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Console\FixturesLoadCommand;
+use App\Service\FixturesLoader\FixturesLoader;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\Migrations\Configuration\Configuration as MigrationsConfiguration;
@@ -22,6 +24,7 @@ use Doctrine\ORM\Tools\Console\Command\SchemaTool\DropCommand;
 use Doctrine\ORM\Tools\Console\Command\ValidateSchemaCommand;
 use Doctrine\ORM\Tools\Console\EntityManagerProvider;
 use Doctrine\ORM\Tools\Console\EntityManagerProvider\SingleManagerProvider;
+use Psr\Container\ContainerInterface;
 use Symfony\Component\Cache\Adapter\FilesystemAdapter;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use function Symfony\Component\DependencyInjection\Loader\Configurator\service;
@@ -99,6 +102,13 @@ return static function (ContainerConfigurator $container) {
     $services->set(ExistingEntityManager::class)
         ->args([service(EntityManagerInterface::class)]);
 
+    // Fixtures loader
+    $services->set(FixturesLoader::class)
+        ->args([
+            service(ContainerInterface::class),
+            ['%app.project_dir%/src/Fixture/']
+        ]);
+
     // ORM Commands
     $services->set(GenerateProxiesCommand::class)
         ->args([service(EntityManagerProvider::class)])
@@ -114,14 +124,31 @@ return static function (ContainerConfigurator $container) {
 
     // Migrations commands
     $services->set(DiffCommand::class)
-        ->args([service(DependencyFactory::class), 'migrations:diff'])
+        ->args([
+            service(DependencyFactory::class),
+            'migrations:diff',
+        ])
         ->tag('console.command');
 
     $services->set(ExecuteCommand::class)
-        ->args([service(DependencyFactory::class), 'migrations:execute'])
+        ->args([
+            service(DependencyFactory::class),
+            'migrations:execute',
+        ])
         ->tag('console.command');
 
     $services->set(MigrateCommand::class)
-        ->args([service(DependencyFactory::class), 'migrations:migrate'])
+        ->args([
+            service(DependencyFactory::class),
+            'migrations:migrate',
+        ])
+        ->tag('console.command');
+
+    // Fixtures command
+    $services->set(FixturesLoadCommand::class)
+        ->args([
+            service(EntityManagerInterface::class),
+            service(FixturesLoader::class),
+        ])
         ->tag('console.command');
 };
