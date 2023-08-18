@@ -46,9 +46,12 @@ class ClearCacheCommand extends Command
         }
 
         if (!$env = $input->getOption('env')) {
-            $question = new Question(sprintf('Are you sure you want to clean the entire directory %s [y/n]?', $cacheDir));
+            $answer = $io->askQuestion(new Question(
+                sprintf('Are you sure you want to clean the entire directory %s? (yes/no)', $cacheDir),
+                'no'
+            ));
 
-            if ($io->askQuestion($question) !== 'y') {
+            if (!str_starts_with($answer, 'y')) {
                 return Command::SUCCESS;
             }
 
@@ -60,6 +63,8 @@ class ClearCacheCommand extends Command
             }
 
             $io->success('Cache was successfully cleared');
+
+            return Command::SUCCESS;
         }
 
         $envCache = $cacheDir . '/' . $env;
