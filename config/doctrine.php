@@ -95,7 +95,7 @@ return static function (ContainerConfigurator $container) {
         ->call('setAllOrNothing', [true])
         ->call('setMigrationOrganization', ['none'])
         ->call('setMetadataStorageConfiguration', [service(TableMetadataStorageConfiguration::class)])
-        ->call('addMigrationsDirectory', ['App\Migration', '%app.project_dir%/src/Migration']);
+        ->call('addMigrationsDirectory', ['App\Database\Migration', '%app.project_dir%/src/Database/Migration']);
 
     $services->set(TableMetadataStorageConfiguration::class);
 
@@ -103,11 +103,20 @@ return static function (ContainerConfigurator $container) {
         ->args([service(EntityManagerInterface::class)]);
 
     // Fixtures loader
+    $services->load('App\\Database\\Fixture\\', '../src/Database/Fixture')
+        ->public();
+
+    $services->load('App\\Database\\EntityFactory\\', '../src/Database/EntityFactory/')
+        ->public();
+
     $services->set(FixturesLoader::class)
         ->args([
             service(ContainerInterface::class),
-            ['%app.project_dir%/src/Fixture/']
+            ['%app.project_dir%/src/Database/Fixture/']
         ]);
+
+    $services->set(Faker\Generator::class)
+        ->factory([Faker\Factory::class, 'create']);
 
     // ORM Commands
     $services->set(GenerateProxiesCommand::class)
