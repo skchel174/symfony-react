@@ -106,7 +106,7 @@ return static function (ContainerConfigurator $container) {
     $services->load('App\\Database\\Fixture\\', '../src/Database/Fixture')
         ->public();
 
-    $services->load('App\\Database\\EntityFactory\\', '../src/Database/EntityFactory/')
+    $services->load('App\\Database\\EntityFactory\\', '../src/Database/Factory/')
         ->public();
 
     $services->set(FixturesLoader::class)
