@@ -40,13 +40,16 @@ class ClearLogCommand extends Command
         $files = $input->getArgument('file');
 
         if (empty($files)) {
-            $question = new Question('Are you sure you want to clear all contents of the log directory [y/n]?');
+            $answer = $io->askQuestion(new Question(
+                'Are you sure you want to clear all contents of the log directory? (yes/no)',
+                'no'
+            ));
 
-            if ($io->askQuestion($question) !== 'y') {
-                return Command::FAILURE;
+            if (!str_starts_with($answer, 'y')) {
+                return Command::SUCCESS;
             }
 
-            foreach (new DirectoryIterator($this->logFile) as $fileInfo) {
+            foreach (new DirectoryIterator($this->logDir) as $fileInfo) {
                 /** @var SplFileInfo $fileInfo */
                 if (!$fileInfo->isDot()) {
                     $this->filesystem->remove($fileInfo->getRealPath());
