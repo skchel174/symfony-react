@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Console\MigrationsRefreshCommand;
+use App\Console\MigrationsResetCommand;
 use Doctrine\Migrations\Configuration\Configuration;
 use Doctrine\Migrations\Configuration\EntityManager\ExistingEntityManager;
 use Doctrine\Migrations\Configuration\Migration\ExistingConfiguration;
@@ -61,5 +63,12 @@ return static function (ContainerConfigurator $container) {
             service(DependencyFactory::class),
             'migrations:migrate',
         ])
+        ->tag('console.command');
+
+    $services->set(MigrationsRefreshCommand::class)
+        ->tag('console.command');
+
+    $services->set(MigrationsResetCommand::class)
+        ->args([service(EntityManagerInterface::class)])
         ->tag('console.command');
 };
