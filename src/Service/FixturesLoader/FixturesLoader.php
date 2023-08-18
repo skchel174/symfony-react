@@ -30,16 +30,18 @@ class FixturesLoader extends Loader
 
     protected function createFixture($class): FixtureInterface
     {
-        $fixture = $this->container->has($class)
-            ? $this->container->get($class)
-            : parent::createFixture($class);
+        if (!$this->container->has($class)) {
+            throw new InvalidArgumentException(sprintf('Fixture "%s" not exists', $class));
+        }
+
+        $fixture = $this->container->get($class);
 
         if (!$fixture instanceof FixtureInterface) {
             throw new InvalidArgumentException(
-                sprintf('Object "%s" not implements interface "%s"', $fixture::class, FixtureInterface::class)
+                sprintf('Fixture "%s" not implement interface "%s"', $fixture::class, FixtureInterface::class)
             );
         }
 
-        return $this->container->get($class);
+        return $fixture;
     }
 }
