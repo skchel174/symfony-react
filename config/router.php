@@ -5,7 +5,7 @@ declare(strict_types=1);
 use App\Console\DebugRouterCommand;
 use App\Event\RequestEvent;
 use App\EventListener\RoutingListener;
-use App\Router\AnnotationLoader;
+use App\Service\AnnotationRoutingLoader\AnnotationRoutingLoader;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\Routing\Loader\AnnotationDirectoryLoader;
@@ -34,7 +34,7 @@ return static function (ContainerConfigurator $container) {
 
     $services->set('router.file_locator', FileLocator::class);
 
-    $services->set('router.annotation_loader', AnnotationLoader::class);
+    $services->set('router.annotation_loader', AnnotationRoutingLoader::class);
 
     $services->set(RoutingListener::class)
         ->args([service(RouterInterface::class)])
