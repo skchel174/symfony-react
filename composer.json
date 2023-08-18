@@ -20,7 +20,8 @@
         "doctrine/orm": "^2.16",
         "doctrine/dbal": "^3.6",
         "doctrine/migrations": "^3.6",
-        "doctrine/data-fixtures": "^1.6"
+        "doctrine/data-fixtures": "^1.6",
+        "fakerphp/faker": "^1.23"
     },
     "require-dev": {
         "symfony/var-dumper": "^6.3",
