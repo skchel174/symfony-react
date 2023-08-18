@@ -3,14 +3,9 @@
 declare(strict_types=1);
 
 use App\Console\ClearCacheCommand;
-use App\Console\ClearLogCommand;
 use App\Console\DebugEventsCommand;
-use App\Console\DebugRouterCommand;
-use App\Event\RequestEvent;
 use App\EventListener\ProfilerSubscriber;
-use App\EventListener\RoutingListener;
 use App\Kernel;
-use App\Router\RouterFactory;
 use App\Service\ControllerResolver\ControllerResolver;
 use App\Service\ControllerResolver\ControllerResolverInterface;
 use Psr\Container\ContainerInterface as PsrContainerInterface;
@@ -20,8 +15,6 @@ use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigura
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Filesystem\Filesystem;
-use Symfony\Component\Routing\Router;
-use Symfony\Component\Routing\RouterInterface;
 use function Symfony\Component\DependencyInjection\Loader\Configurator\service;
 
 return static function (ContainerConfigurator $container) {
@@ -46,25 +39,6 @@ return static function (ContainerConfigurator $container) {
 
     $services->set(DebugEventsCommand::class)
         ->args([service(EventDispatcherInterface::class)])
-        ->tag('console.command');
-
-    // Router
-    $services->set(RouterInterface::class, Router::class)
-        ->factory(service(RouterFactory::class))
-        ->args([
-            '%app.project_dir%/src/Controller',
-            '%app.cache_dir%',
-            '%app.debug%',
-        ])
-        ->public();
-
-    $services->set(RouterFactory::class);
-
-    $services->set(RoutingListener::class)
-        ->tag('event_listener', ['event' => RequestEvent::class]);
-
-    $services->set(DebugRouterCommand::class)
-        ->args([service(RouterInterface::class)])
         ->tag('console.command');
 
     // Kernel

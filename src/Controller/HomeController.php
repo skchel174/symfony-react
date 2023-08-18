@@ -15,7 +15,7 @@ class HomeController
         return new Response('Hello, World!');
     }
 
-    #[Route('/greeting/{name?}', 'greeting')]
+    #[Route('/greeting/{name}', 'greeting')]
     public function greeting(string $name = 'Guest'): Response
     {
         return new Response(sprintf('Hello, %s!', $name));
