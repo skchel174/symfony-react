@@ -12,7 +12,7 @@ use Symfony\Component\DependencyInjection\Dumper\PhpDumper;
 use Symfony\Component\DependencyInjection\Loader\PhpFileLoader;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBag;
 
-readonly class ContainerFactory
+class ContainerFactory
 {
     public function __construct(protected bool $debug, protected string $env, protected string $projectDir)
     {
@@ -98,6 +98,9 @@ readonly class ContainerFactory
         $parameters = new ParameterBag($this->getProjectParameters());
 
         $container = new ContainerBuilder($parameters);
+
+        $container->setAlias(ContainerInterface::class, 'service_container')
+            ->setPublic(true);
 
         foreach ($this->getContainerExtensions() as $extension) {
             $container->registerExtension(new $extension());
